@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdm.flipcoins.AppController" spacing="10" alignment="TOP_LEFT">
+    <padding>
+        <Insets top="12" right="12" bottom="12" left="12"/>
+    </padding>
+
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Description:"/>
+        <TextField fx:id="descriptionField" promptText="Enter what you want (description)" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label text="Best of (odd):"/>
+        <TextField fx:id="oddField" promptText="Enter odd number" prefWidth="120"/>
+        <RadioButton fx:id="headRadio" text="Head"/>
+        <RadioButton fx:id="tailRadio" text="Tail"/>
+    </HBox>
+
+    <HBox spacing="8" alignment="CENTER">
+        <Button text="Flip" fx:id="flipButton" onAction="#onFlip"/>
+        <Button text="Restart" fx:id="restartButton" onAction="#onRestart"/>
+        <Button text="Exit" fx:id="exitButton" onAction="#onExit"/>
+    </HBox>
+
+    <TextArea fx:id="outputArea" editable="false" wrapText="true" prefRowCount="10"/>
+
+</VBox>
