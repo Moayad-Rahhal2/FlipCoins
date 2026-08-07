@@ -36,6 +36,9 @@ class AppController {
 
     @FXML
     fun initialize() {
+        val group = javafx.scene.control.ToggleGroup()
+        headRadio.toggleGroup = group
+        tailRadio.toggleGroup = group
         headRadio.isSelected = true
     }
 
@@ -66,8 +69,6 @@ class AppController {
 
         // Disable controls while simulating
         flipButton.isDisable = true
-        restartButton.isDisable = true
-        exitButton.isDisable = true
         descriptionField.isDisable = true
         oddField.isDisable = true
         headRadio.isDisable = true
@@ -139,13 +140,7 @@ class AppController {
         Thread(task).start()
     }
 
-    @FXML
-    fun onRestart(event: ActionEvent?) {
-        descriptionField.clear()
-        oddField.clear()
-        headRadio.isSelected = true
-        outputArea.clear()
-    }
+
 
     @FXML
     fun onExit(event: ActionEvent?) {

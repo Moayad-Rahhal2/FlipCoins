@@ -13,6 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.12.1</junit.version>
         <kotlin.version>2.1.20</kotlin.version>
+        <javafx.version>25.0.4</javafx.version>
     </properties>
 
     <dependencies>
@@ -130,6 +131,7 @@
                 <configuration>
                     <source>9</source>
                     <target>9</target>
+                    <release>25</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -152,6 +154,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
@@ -173,7 +176,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <jvmTarget>11</jvmTarget>
+                    <jvmTarget>21</jvmTarget>
                 </configuration>
             </plugin>
         </plugins>
