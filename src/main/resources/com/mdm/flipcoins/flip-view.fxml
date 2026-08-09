@@ -3,31 +3,77 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
 
-<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdm.flipcoins.AppController" spacing="10" alignment="TOP_LEFT">
+<VBox xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.mdm.flipcoins.AppController" spacing="12" alignment="TOP_LEFT">
     <padding>
-        <Insets top="12" right="12" bottom="12" left="12"/>
+        <Insets top="16" right="16" bottom="16" left="16"/>
     </padding>
 
+    <!-- Header -->
     <HBox spacing="8" alignment="CENTER_LEFT">
-        <Label text="Description:"/>
-        <TextField fx:id="descriptionField" promptText="Enter what you want (description)" HBox.hgrow="ALWAYS"/>
+        <Label text="FlipCoins" style="-fx-font-size:18px; -fx-font-weight:bold;" />
+        <Label text="Test your luck" style="-fx-text-fill:#666666; -fx-padding:0 0 0 8;" />
+        <Pane HBox.hgrow="ALWAYS" />
+        <Label fx:id="versionLabel" text="v1.0" style="-fx-text-fill:#999999;" />
     </HBox>
 
-    <HBox spacing="8" alignment="CENTER_LEFT">
-        <Label text="Best of (odd):"/>
-        <TextField fx:id="oddField" promptText="Enter odd number" prefWidth="120"/>
-        <RadioButton fx:id="headRadio" text="Head" toggleGroup="$choiceGroup"/>
-        <RadioButton fx:id="tailRadio" text="Tail" toggleGroup="$choiceGroup"/>
+    <!-- Inputs -->
+    <GridPane hgap="8" vgap="8">
+        <columnConstraints>
+            <ColumnConstraints percentWidth="22" />
+            <ColumnConstraints percentWidth="78" />
+        </columnConstraints>
+
+        <Label text="Description:" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+        <HBox GridPane.rowIndex="0" GridPane.columnIndex="1" spacing="8">
+            <TextField fx:id="descriptionField" promptText="What are you betting on? (optional)" HBox.hgrow="ALWAYS" />
+            <Label fx:id="descCount" text="0" style="-fx-text-fill:#888888;" />
+        </HBox>
+
+        <Label text="Best of (odd):" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+        <HBox GridPane.rowIndex="1" GridPane.columnIndex="1" spacing="8" alignment="CENTER_LEFT">
+            <Spinner fx:id="oddSpinner" editable="true" prefWidth="120" />
+            <HBox spacing="6">
+                <Button text="1" onAction="#onPreset1" />
+                <Button text="3" onAction="#onPreset3" />
+                <Button text="5" onAction="#onPreset5" />
+                <Button text="7" onAction="#onPreset7" />
+            </HBox>
+        </HBox>
+
+        <Label text="Choose:" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+        <HBox GridPane.rowIndex="2" GridPane.columnIndex="1" spacing="8">
+            <RadioButton fx:id="headRadio" text="Head" toggleGroup="$choiceGroup" />
+            <RadioButton fx:id="tailRadio" text="Tail" toggleGroup="$choiceGroup" />
+        </HBox>
+    </GridPane>
+
+    <!-- Flip button -->
+    <HBox alignment="CENTER">
+        <Button fx:id="flipButton" text="Flip" onAction="#onFlip" styleClass="primary-button" />
     </HBox>
 
-    <HBox spacing="8" alignment="CENTER">
-        <Button text="Flip" fx:id="flipButton" onAction="#onFlip"/>
-    </HBox>
+    <!-- Winner banner -->
+    <StackPane prefHeight="72">
+        <Label fx:id="winnerBanner" text="" visible="false" managed="false" styleClass="winner-banner" />
+    </StackPane>
 
-    <TextArea fx:id="outputArea" editable="false" wrapText="true" prefRowCount="10"/>
+    <!-- Results and log -->
+    <VBox spacing="8">
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="Head:" />
+            <Label fx:id="headCountLabel" text="0" />
+            <Label text="Tail:" />
+            <Label fx:id="tailCountLabel" text="0" />
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label fx:id="summaryLabel" text="" style="-fx-text-fill:#666666;" />
+        </HBox>
+
+        <TextArea fx:id="outputArea" editable="false" wrapText="true" prefRowCount="8" />
+    </VBox>
 
     <fx:define>
-        <ToggleGroup fx:id="choiceGroup"/>
+        <ToggleGroup fx:id="choiceGroup" />
     </fx:define>
 </VBox>
