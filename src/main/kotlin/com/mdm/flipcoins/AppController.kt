@@ -86,6 +86,47 @@ class AppController {
 
         // add pressed animation to flip button
         if (this::flipButton.isInitialized) addFlipButtonPressedAnimation()
+
+        // Apply temporary inline styles after layout so you immediately see the updated design.
+        // This is intentionally inline (highest precedence) as a quick visual fallback.
+        Platform.runLater {
+            // Force Flip button inline style (temporary, overrides stylesheet)
+            if (this::flipButton.isInitialized) {
+                flipButton.style = """
+                    -fx-background-color: linear-gradient(#4eb2ff, #1e90ff);
+                    -fx-text-fill: white;
+                    -fx-font-weight: 700;
+                    -fx-font-size: 15px;
+                    -fx-padding: 12 20 12 20;
+                    -fx-background-radius: 10;
+                    -fx-border-color: transparent;
+                """.trimIndent()
+            }
+
+            // Force winner banner inline style
+            if (this::winnerBanner.isInitialized) {
+                winnerBanner.style = """
+                    -fx-background-color: linear-gradient(#fff3f1, #ffd9d3);
+                    -fx-text-fill: #7a3b2a;
+                    -fx-font-size: 15px;
+                    -fx-font-weight: bold;
+                    -fx-padding: 10;
+                    -fx-background-radius: 10;
+                """.trimIndent()
+            }
+
+            // Force results area inline style to make it obviously updated
+            if (this::outputArea.isInitialized) {
+                outputArea.style = """
+                    -fx-background-color: #fbfdff;
+                    -fx-border-color: #e9f0f7;
+                    -fx-border-radius: 8;
+                    -fx-font-family: "Courier New", monospace;
+                    -fx-font-size: 12px;
+                    -fx-padding: 10;
+                """.trimIndent()
+            }
+        }
     }
 
     private fun updateFlipButtonState() {
