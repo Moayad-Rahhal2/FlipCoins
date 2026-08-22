@@ -1,5 +1,9 @@
 package com.mdm.flipcoins
 
+import javafx.animation.ScaleTransition
+import javafx.scene.input.MouseEvent
+import javafx.scene.input.TouchEvent
+import javafx.util.Duration
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.fxml.FXML
@@ -9,27 +13,49 @@ import java.util.Random
 class AppController {
     private val random = Random()
 
-    @FXML lateinit var versionLabel: Label
-    @FXML lateinit var descriptionField: TextField
-    @FXML lateinit var oddSpinner: Spinner<Int>
-    @FXML lateinit var headRadio: RadioButton
-    @FXML lateinit var tailRadio: RadioButton
-    @FXML lateinit var flipButton: Button
-    @FXML lateinit var outputArea: TextArea
-    @FXML lateinit var headCountLabel: Label
-    @FXML lateinit var tailCountLabel: Label
-    @FXML lateinit var summaryLabel: Label
-    @FXML lateinit var winnerBanner: Label
+    @FXML
+    lateinit var descriptionField: TextField
+
+    @FXML
+    lateinit var oddSpinner: Spinner<Int>
+
+    @FXML
+    lateinit var headRadio: RadioButton
+
+    @FXML
+    lateinit var tailRadio: RadioButton
+
+    @FXML
+    lateinit var flipButton: Button
+
+    @FXML
+    lateinit var outputArea: TextArea
+
+    @FXML
+    lateinit var headCountLabel: Label
+
+    @FXML
+    lateinit var tailCountLabel: Label
+
+    @FXML
+    lateinit var summaryLabel: Label
+
+    @FXML
+    lateinit var winnerBanner: Label
 
     private var runningTask: Task<Unit>? = null
 
+    // scale transitions for pressed animation
+    private var flipScaleDown: ScaleTransition? = null
+    private var flipScaleUp: ScaleTransition? = null
+
     @FXML
     fun initialize() {
-
-        // spinner setup (defensive)
+        // Setup spinner (guarded)
         if (this::oddSpinner.isInitialized) {
             setupSpinner(oddSpinner)
         } else {
+            // defensive: attempt lookup later if injection missed
             Platform.runLater {
                 try {
                     if (!this::oddSpinner.isInitialized) {
@@ -46,17 +72,17 @@ class AppController {
             }
         }
 
-        // radio buttons
+        // Ensure radio buttons are mutually exclusive
         if (this::headRadio.isInitialized && this::tailRadio.isInitialized) {
             if (headRadio.toggleGroup == null && tailRadio.toggleGroup == null) {
                 val group = ToggleGroup()
                 headRadio.toggleGroup = group
                 tailRadio.toggleGroup = group
             }
-            tailRadio.isSelected = true
+            headRadio.isSelected = true
         }
 
-        // banner defaults
+        // Banner defaults
         if (this::winnerBanner.isInitialized) {
             winnerBanner.isVisible = false
             winnerBanner.isManaged = false
@@ -70,14 +96,18 @@ class AppController {
         // Flip button initially disabled until odd spinner has a valid odd positive integer
         if (this::flipButton.isInitialized) flipButton.isDisable = true
 
-        // enable Flip only when spinner editor contains a positive odd integer
+        // Add listeners to enable Flip only when spinner editor text is a positive odd integer
         if (this::oddSpinner.isInitialized && this::flipButton.isInitialized) {
-            // value changes from the spinner control
+            // when spinner value property changes
             oddSpinner.valueFactory.valueProperty().addListener { _, _, _ -> updateFlipButtonState() }
-            // editor text changes when user types
+            // when editor text changes (user typing)
             oddSpinner.editor.textProperty().addListener { _, _, _ -> updateFlipButtonState() }
+            // validate at startup
             Platform.runLater { updateFlipButtonState() }
         }
+
+        // add pressed animation to flip button
+        if (this::flipButton.isInitialized) addFlipButtonPressedAnimation()
     }
 
     private fun updateFlipButtonState() {
@@ -101,13 +131,61 @@ class AppController {
         spinner.isEditable = true
         val factory = SpinnerValueFactory.IntegerSpinnerValueFactory(1, Int.MAX_VALUE, 1, 2)
         spinner.valueFactory = factory
+        // ensure editor text shows current value
         spinner.editor.text = spinner.value.toString()
     }
 
-    // onFlip: no-arg handler (FXML accepts this)
+    // pressed animation: scale down on press, scale up on release (mouse/touch/keyboard)
+    private fun addFlipButtonPressedAnimation() {
+        if (!this::flipButton.isInitialized) return
+
+        val downDuration = Duration.millis(80.0)
+        val upDuration = Duration.millis(120.0)
+
+        flipScaleDown = ScaleTransition(downDuration, flipButton).apply {
+            toX = 0.96
+            toY = 0.96
+        }
+        flipScaleUp = ScaleTransition(upDuration, flipButton).apply {
+            toX = 1.0
+            toY = 1.0
+        }
+
+        // Mouse events (explicit parameter type so Kotlin can resolve overload)
+        flipButton.addEventHandler(MouseEvent.MOUSE_PRESSED) { _: MouseEvent ->
+            flipScaleUp?.stop()
+            flipScaleDown?.playFromStart()
+        }
+        flipButton.addEventHandler(MouseEvent.MOUSE_RELEASED) { _: MouseEvent ->
+            flipScaleDown?.stop()
+            flipScaleUp?.playFromStart()
+        }
+
+        // Touch events (explicit parameter type)
+        flipButton.addEventHandler(TouchEvent.TOUCH_PRESSED) { _: TouchEvent ->
+            flipScaleUp?.stop()
+            flipScaleDown?.playFromStart()
+        }
+        flipButton.addEventHandler(TouchEvent.TOUCH_RELEASED) { _: TouchEvent ->
+            flipScaleDown?.stop()
+            flipScaleUp?.playFromStart()
+        }
+
+        // Keyboard / accessibility: listen to the "armed" property (explicit types)
+        flipButton.armedProperty().addListener { _: javafx.beans.value.ObservableValue<out Boolean>?, _: Boolean?, armed: Boolean? ->
+            if (armed == true) {
+                flipScaleUp?.stop()
+                flipScaleDown?.playFromStart()
+            } else {
+                flipScaleDown?.stop()
+                flipScaleUp?.playFromStart()
+            }
+        }
+    }
+
     @FXML
     fun onFlip() {
-        // Defensive checks
+        // Defensive checks for required injected nodes
         if (!this::oddSpinner.isInitialized || !this::flipButton.isInitialized || !this::outputArea.isInitialized) {
             showAlert("UI error", "Required UI controls are not initialized. Rebuild and ensure resources are packaged.")
             return
@@ -131,6 +209,9 @@ class AppController {
             return
         }
 
+        // normalize visible spinner value
+        oddSpinner.valueFactory.value = odd
+
         outputArea.clear()
         if (this::winnerBanner.isInitialized) {
             winnerBanner.isVisible = false
@@ -144,7 +225,7 @@ class AppController {
 
         val playerChoice = if (this::headRadio.isInitialized && headRadio.isSelected) "Head" else "Tail"
 
-        if (runningTask != null) return
+        if (runningTask != null) return // ignore while running
 
         setControlsDisabled(true)
         if (this::headCountLabel.isInitialized) headCountLabel.text = "0"
@@ -165,7 +246,7 @@ class AppController {
 
                 for (i in 1..odd) {
                     if (isCancelled) break
-                    val flip = random.nextInt(2)
+                    val flip = random.nextInt(2) // 0=head, 1=tail
                     if (flip == 0) headCount++ else tailCount++
 
                     val flipText = "Flip $i: ${if (flip == 0) "Head" else "Tail"}\n"
@@ -178,7 +259,7 @@ class AppController {
                     if (headCount == target || tailCount == target) break
 
                     try {
-                        Thread.sleep(120)
+                        Thread.sleep(120) // brief pause so user can see progress
                     } catch (_: InterruptedException) {
                         if (isCancelled) break
                     }
@@ -223,7 +304,7 @@ class AppController {
     }
 
     private fun showWinnerBanner(winner: String, playerChoice: String) {
-        winnerBanner.text = if (winner == playerChoice) "$winner WINS!" else "$winner WINS!"
+        winnerBanner.text = if (winner == playerChoice) "$winner WINS! You won!" else "$winner WINS!"
         winnerBanner.styleClass.removeAll("winner-head", "winner-tail")
         winnerBanner.styleClass.add(if (winner == "Head") "winner-head" else "winner-tail")
         winnerBanner.isManaged = true

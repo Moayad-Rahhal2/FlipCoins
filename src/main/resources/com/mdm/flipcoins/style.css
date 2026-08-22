@@ -1,46 +1,150 @@
-.primary-button {
-    -fx-background-color: #1e90ff;
-    -fx-text-fill: white;
-    -fx-font-weight: bold;
-    -fx-padding: 8 16 8 16;
-    -fx-background-radius: 6;
+/* Global / background */
+.root {
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-background-color: linear-gradient(#fbfdff 0%, #eef4fb 100%);
+    -fx-padding: 10;
 }
 
-/* hide spinner arrow visuals (use padding + transparent background) */
+/* Header */
+.header {
+    -fx-padding: 6 8;
+    -fx-alignment: center-left;
+}
+.app-icon {
+    -fx-font-size: 30px;
+}
+.app-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1f2937;
+}
+.app-subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: #6b7280;
+}
+
+/* Card */
+.card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
+    -fx-spacing: 14;
+    -fx-effect: dropshadow(gaussian , rgba(16,24,40,0.08) , 22, 0.6 , 0 , 8 );
+    -fx-border-color: rgba(16,24,40,0.03);
+    -fx-border-radius: 12;
+}
+
+/* Form labels */
+.form-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #374151;
+}
+.muted {
+    -fx-text-fill: #9aa3b2;
+    -fx-font-size: 12px;
+}
+
+/* Primary button: modern, hover and pressed (use supported properties) */
+.primary-button {
+    -fx-background-color: linear-gradient(#4eb2ff 0%, #1e90ff 100%);
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-font-size: 15px;
+    -fx-padding: 12 20 12 20;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
+    -fx-effect: dropshadow(gaussian , rgba(14, 114, 217, 0.18) , 8, 0.6 , 0 , 3 );
+}
+
+/* hover visual — slightly stronger shadow */
+.primary-button:hover {
+    -fx-effect: dropshadow(gaussian , rgba(14, 114, 217, 0.22) , 10, 0.6 , 0 , 4 );
+}
+
+/* pressed visual — reduce opacity and slightly change effect (no scale) */
+.primary-button:pressed {
+    -fx-opacity: 0.92;
+    -fx-effect: dropshadow(gaussian , rgba(14, 114, 217, 0.12) , 6, 0.5 , 0 , 2 );
+}
+
+/* Full width helper */
+.full-width {
+    -fx-pref-width: 100%;
+    -fx-max-width: 100%;
+}
+
+/* Spinner - aggressively hide the arrow buttons (works at runtime) */
+.spinner > .increment-arrow-button,
+.spinner > .decrement-arrow-button {
+    -fx-pref-width: 0px;
+    -fx-min-width: 0px;
+    -fx-max-width: 0px;
+    -fx-opacity: 0;
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-shape: "";
+}
+
+/* Additional fallback to visually collapse arrows on some skins */
 .spinner .increment-arrow-button,
 .spinner .decrement-arrow-button {
-    -fx-background-color: transparent;
-    -fx-padding: 0;
+    -fx-pref-width: 0px;
+    -fx-min-width: 0px;
+    -fx-max-width: 0px;
+    -fx-opacity: 0;
 }
 
-/* spinner editor look */
+/* Spinner editor */
 .spinner .text-field {
-    -fx-background-color: white;
-    -fx-border-color: #d0d0d0;
-    -fx-border-radius: 4;
-    -fx-padding: 4 8 4 8;
+    -fx-font-size: 14px;
+    -fx-padding: 8 12 8 12;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #e6edf6;
+    -fx-border-radius: 8;
 }
 
-.winner-banner {
-    -fx-background-color: #f0f0f0;
-    -fx-padding: 10;
-    -fx-font-size: 16px;
-    -fx-font-weight: bold;
-    -fx-background-radius: 6;
-    -fx-alignment: center;
-}
-
-/* simpler gradient syntax (compatible) */
-.winner-banner.winner-head {
-    -fx-background-color: linear-gradient(#e0f7ef 0%, #baf1df 100%);
-    -fx-text-fill: #006644;
-}
-
-.winner-banner.winner-tail {
-    -fx-background-color: linear-gradient(#ffecec 0%, #ffdede 100%);
-    -fx-text-fill: #663300;
-}
-
-.label {
+/* Radio buttons */
+.radio-button {
     -fx-font-size: 13px;
+}
+
+/* Winner banner */
+.winner-banner {
+    -fx-background-color: #fff7ef;
+    -fx-padding: 10;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-alignment: center;
+    -fx-text-fill: #111827;
+    -fx-effect: dropshadow(gaussian , rgba(16,24,40,0.04) , 6, 0.4 , 0 , 2 );
+}
+
+/* Winner variants */
+.winner-banner.winner-head {
+    -fx-background-color: linear-gradient(#e8fbf4 0%, #cff2e6 100%);
+    -fx-text-fill: #056a48;
+}
+.winner-banner.winner-tail {
+    -fx-background-color: linear-gradient(#fff3f1 0%, #ffd9d3 100%);
+    -fx-text-fill: #7a3b2a;
+}
+
+/* Results area */
+.results-area {
+    -fx-background-color: #fbfdff;
+    -fx-border-color: #e9f0f7;
+    -fx-border-radius: 8;
+    -fx-font-family: "Courier New", monospace;
+    -fx-font-size: 12px;
+    -fx-padding: 10;
+}
+
+/* Narrow screens */
+@media screen and (max-width: 420px) {
+    .card { -fx-padding: 14; }
+    .primary-button { -fx-font-size: 16px; -fx-padding: 14 18 14 18; }
+    .spinner .text-field { -fx-font-size: 15px; -fx-padding: 10 12 10 12; }
+    .app-title { -fx-font-size: 18px; }
 }
