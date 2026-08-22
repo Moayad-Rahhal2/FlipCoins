@@ -49,41 +49,7 @@ class FlipCoinsApplication : Application() {
         }
 
         // Robustly hide spinner arrows (retries a few times in case children are created lazily)
-        hideSpinnerArrowsWithRetries(root, retries = 4, delayMs = 60)
     }
 
-    private fun hideSpinnerArrowsWithRetries(root: Parent, retries: Int, delayMs: Int) {
-        var attempts = 0
 
-        fun attemptHide() {
-            val inc = root.lookupAll(".increment-arrow-button")
-            val dec = root.lookupAll(".decrement-arrow-button")
-            val found = inc.size + dec.size
-            if (found > 0) {
-                var hidden = 0
-                (inc + dec).forEach { n ->
-                    (n as? Node)?.let {
-                        if (it.isVisible || it.isManaged) {
-                            it.isVisible = false
-                            it.isManaged = false
-                            hidden++
-                        }
-                    }
-                }
-                println("hideSpinnerArrowsWithRetries: found $found arrow node(s), hid $hidden")
-            } else {
-                println("hideSpinnerArrowsWithRetries: no arrow nodes found on attempt ${attempts + 1}")
-            }
-
-            attempts++
-            if (attempts < retries && (inc.isEmpty() && dec.isEmpty())) {
-                val pause = PauseTransition(Duration.millis(delayMs.toDouble()))
-                pause.setOnFinished { attemptHide() }
-                pause.play()
-            }
-        }
-
-        // start attempts on the FX thread
-        Platform.runLater { attemptHide() }
-    }
 }

@@ -1,13 +1,13 @@
 package com.mdm.flipcoins
 
 import javafx.animation.ScaleTransition
-import javafx.scene.input.MouseEvent
-import javafx.scene.input.TouchEvent
-import javafx.util.Duration
 import javafx.application.Platform
 import javafx.concurrent.Task
 import javafx.fxml.FXML
 import javafx.scene.control.*
+import javafx.scene.input.MouseEvent
+import javafx.scene.input.TouchEvent
+import javafx.util.Duration
 import java.util.Random
 
 class AppController {
@@ -16,8 +16,9 @@ class AppController {
     @FXML
     lateinit var descriptionField: TextField
 
+    // replaced Spinner with TextField
     @FXML
-    lateinit var oddSpinner: Spinner<Int>
+    lateinit var oddField: TextField
 
     @FXML
     lateinit var headRadio: RadioButton
@@ -51,35 +52,14 @@ class AppController {
 
     @FXML
     fun initialize() {
-        // Setup spinner (guarded)
-        if (this::oddSpinner.isInitialized) {
-            setupSpinner(oddSpinner)
-        } else {
-            // defensive: attempt lookup later if injection missed
-            Platform.runLater {
-                try {
-                    if (!this::oddSpinner.isInitialized) {
-                        val lookup = descriptionField.scene?.lookup("#oddSpinner") as? Spinner<*>
-                        if (lookup != null) {
-                            @Suppress("UNCHECKED_CAST")
-                            oddSpinner = lookup as Spinner<Int>
-                            setupSpinner(oddSpinner)
-                        }
-                    }
-                } catch (_: Throwable) {
-                    // ignore
-                }
-            }
-        }
-
-        // Ensure radio buttons are mutually exclusive
+        // Radio toggles
         if (this::headRadio.isInitialized && this::tailRadio.isInitialized) {
             if (headRadio.toggleGroup == null && tailRadio.toggleGroup == null) {
                 val group = ToggleGroup()
                 headRadio.toggleGroup = group
                 tailRadio.toggleGroup = group
             }
-            headRadio.isSelected = true
+            tailRadio.isSelected = true
         }
 
         // Banner defaults
@@ -93,16 +73,14 @@ class AppController {
         if (this::tailCountLabel.isInitialized) tailCountLabel.text = "0"
         if (this::summaryLabel.isInitialized) summaryLabel.text = ""
 
-        // Flip button initially disabled until odd spinner has a valid odd positive integer
+        // Flip button initially disabled until oddField has a valid odd positive integer
         if (this::flipButton.isInitialized) flipButton.isDisable = true
 
-        // Add listeners to enable Flip only when spinner editor text is a positive odd integer
-        if (this::oddSpinner.isInitialized && this::flipButton.isInitialized) {
-            // when spinner value property changes
-            oddSpinner.valueFactory.valueProperty().addListener { _, _, _ -> updateFlipButtonState() }
-            // when editor text changes (user typing)
-            oddSpinner.editor.textProperty().addListener { _, _, _ -> updateFlipButtonState() }
-            // validate at startup
+        // Add listeners to enable Flip only when oddField contains a positive odd integer
+        if (this::oddField.isInitialized && this::flipButton.isInitialized) {
+            oddField.textProperty().addListener { _, _, _ -> updateFlipButtonState() }
+            // prefill with 1 if empty
+            if (oddField.text.isNullOrBlank()) oddField.text = "1"
             Platform.runLater { updateFlipButtonState() }
         }
 
@@ -111,8 +89,8 @@ class AppController {
     }
 
     private fun updateFlipButtonState() {
-        if (!this::oddSpinner.isInitialized || !this::flipButton.isInitialized) return
-        val text = oddSpinner.editor.text.trim()
+        if (!this::oddField.isInitialized || !this::flipButton.isInitialized) return
+        val text = oddField.text.trim()
         val ok = try {
             val v = text.toInt()
             v > 0 && (v % 2 == 1)
@@ -120,19 +98,12 @@ class AppController {
             false
         }
         flipButton.isDisable = !ok
+        // normalize displayed value when valid
         if (ok) {
             try {
-                oddSpinner.valueFactory.value = text.toInt()
+                oddField.text = text.toInt().toString()
             } catch (_: Exception) { /* ignore */ }
         }
-    }
-
-    private fun setupSpinner(spinner: Spinner<Int>) {
-        spinner.isEditable = true
-        val factory = SpinnerValueFactory.IntegerSpinnerValueFactory(1, Int.MAX_VALUE, 1, 2)
-        spinner.valueFactory = factory
-        // ensure editor text shows current value
-        spinner.editor.text = spinner.value.toString()
     }
 
     // pressed animation: scale down on press, scale up on release (mouse/touch/keyboard)
@@ -151,7 +122,7 @@ class AppController {
             toY = 1.0
         }
 
-        // Mouse events (explicit parameter type so Kotlin can resolve overload)
+        // Mouse events (explicit parameter types)
         flipButton.addEventHandler(MouseEvent.MOUSE_PRESSED) { _: MouseEvent ->
             flipScaleUp?.stop()
             flipScaleDown?.playFromStart()
@@ -161,7 +132,7 @@ class AppController {
             flipScaleUp?.playFromStart()
         }
 
-        // Touch events (explicit parameter type)
+        // Touch events
         flipButton.addEventHandler(TouchEvent.TOUCH_PRESSED) { _: TouchEvent ->
             flipScaleUp?.stop()
             flipScaleDown?.playFromStart()
@@ -171,7 +142,7 @@ class AppController {
             flipScaleUp?.playFromStart()
         }
 
-        // Keyboard / accessibility: listen to the "armed" property (explicit types)
+        // Keyboard activation (armedProperty)
         flipButton.armedProperty().addListener { _: javafx.beans.value.ObservableValue<out Boolean>?, _: Boolean?, armed: Boolean? ->
             if (armed == true) {
                 flipScaleUp?.stop()
@@ -185,15 +156,15 @@ class AppController {
 
     @FXML
     fun onFlip() {
-        // Defensive checks for required injected nodes
-        if (!this::oddSpinner.isInitialized || !this::flipButton.isInitialized || !this::outputArea.isInitialized) {
+        // Defensive checks
+        if (!this::oddField.isInitialized || !this::flipButton.isInitialized || !this::outputArea.isInitialized) {
             showAlert("UI error", "Required UI controls are not initialized. Rebuild and ensure resources are packaged.")
             return
         }
 
         // Validate odd value again as guard
         val odd = try {
-            val text = oddSpinner.editor.text.trim()
+            val text = oddField.text.trim()
             val parsed = text.toInt()
             if (parsed <= 0) {
                 showAlert("Invalid input", "Please enter a positive odd number.")
@@ -209,8 +180,8 @@ class AppController {
             return
         }
 
-        // normalize visible spinner value
-        oddSpinner.valueFactory.value = odd
+        // normalize displayed value
+        oddField.text = odd.toString()
 
         outputArea.clear()
         if (this::winnerBanner.isInitialized) {
@@ -246,7 +217,7 @@ class AppController {
 
                 for (i in 1..odd) {
                     if (isCancelled) break
-                    val flip = random.nextInt(2) // 0=head, 1=tail
+                    val flip = random.nextInt(2)
                     if (flip == 0) headCount++ else tailCount++
 
                     val flipText = "Flip $i: ${if (flip == 0) "Head" else "Tail"}\n"
@@ -259,7 +230,7 @@ class AppController {
                     if (headCount == target || tailCount == target) break
 
                     try {
-                        Thread.sleep(120) // brief pause so user can see progress
+                        Thread.sleep(120)
                     } catch (_: InterruptedException) {
                         if (isCancelled) break
                     }
@@ -304,7 +275,7 @@ class AppController {
     }
 
     private fun showWinnerBanner(winner: String, playerChoice: String) {
-        winnerBanner.text = if (winner == playerChoice) "$winner WINS! You won!" else "$winner WINS!"
+        winnerBanner.text = if (winner == playerChoice) "You Win" else "You Lose"
         winnerBanner.styleClass.removeAll("winner-head", "winner-tail")
         winnerBanner.styleClass.add(if (winner == "Head") "winner-head" else "winner-tail")
         winnerBanner.isManaged = true
@@ -314,7 +285,7 @@ class AppController {
     private fun setControlsDisabled(disabled: Boolean) {
         if (this::flipButton.isInitialized) flipButton.isDisable = disabled
         if (this::descriptionField.isInitialized) descriptionField.isDisable = disabled
-        if (this::oddSpinner.isInitialized) oddSpinner.isDisable = disabled
+        if (this::oddField.isInitialized) oddField.isDisable = disabled
         if (this::headRadio.isInitialized) headRadio.isDisable = disabled
         if (this::tailRadio.isInitialized) tailRadio.isDisable = disabled
     }

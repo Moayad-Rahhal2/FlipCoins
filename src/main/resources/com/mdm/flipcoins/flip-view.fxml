@@ -35,7 +35,7 @@
 
             <Label text="Best of (odd):" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="form-label"/>
             <HBox GridPane.rowIndex="1" GridPane.columnIndex="1" spacing="8" alignment="CENTER_LEFT">
-                <Spinner fx:id="oddSpinner" prefWidth="140" />
+                <TextField fx:id="oddField" prefWidth="140" promptText="e.g., 5" />
                 <!-- you removed presets intentionally -->
             </HBox>
 
