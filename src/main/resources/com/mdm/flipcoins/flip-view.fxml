@@ -4,9 +4,15 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
+<?import java.lang.String?>
+
 <VBox xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.mdm.flipcoins.AppController"
       spacing="12" alignment="TOP_LEFT">
+    <stylesheets>
+        <String fx:value="@style.css"/>
+    </stylesheets>
+
     <padding>
         <Insets top="16" right="16" bottom="16" left="16"/>
     </padding>
@@ -27,24 +33,17 @@
         <Label text="Description:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
         <HBox GridPane.rowIndex="0" GridPane.columnIndex="1" spacing="8">
             <TextField fx:id="descriptionField" promptText="What are you betting on? (optional)" HBox.hgrow="ALWAYS"/>
-            <Label fx:id="descCount" text="0" style="-fx-text-fill:#888888;"/>
         </HBox>
 
         <Label text="Best of (odd):" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
         <HBox GridPane.rowIndex="1" GridPane.columnIndex="1" spacing="8" alignment="CENTER_LEFT">
             <Spinner fx:id="oddSpinner" prefWidth="120"/>
-            <HBox spacing="6">
-                <Button text="1" onAction="#onPreset1"/>
-                <Button text="3" onAction="#onPreset3"/>
-                <Button text="5" onAction="#onPreset5"/>
-                <Button text="7" onAction="#onPreset7"/>
-            </HBox>
         </HBox>
 
         <Label text="Choose:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
         <HBox GridPane.rowIndex="2" GridPane.columnIndex="1" spacing="8">
-            <RadioButton fx:id="headRadio" text="Head" toggleGroup="$choiceGroup"/>
             <RadioButton fx:id="tailRadio" text="Tail" toggleGroup="$choiceGroup"/>
+            <RadioButton fx:id="headRadio" text="Head" toggleGroup="$choiceGroup"/>
         </HBox>
     </GridPane>
 

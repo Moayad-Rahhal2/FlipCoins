@@ -6,6 +6,21 @@
     -fx-background-radius: 6;
 }
 
+/* hide spinner arrow visuals (use padding + transparent background) */
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+/* spinner editor look */
+.spinner .text-field {
+    -fx-background-color: white;
+    -fx-border-color: #d0d0d0;
+    -fx-border-radius: 4;
+    -fx-padding: 4 8 4 8;
+}
+
 .winner-banner {
     -fx-background-color: #f0f0f0;
     -fx-padding: 10;
@@ -15,12 +30,17 @@
     -fx-alignment: center;
 }
 
+/* simpler gradient syntax (compatible) */
 .winner-banner.winner-head {
-    -fx-background-color: linear-gradient(#e0f7ef, #baf1df);
+    -fx-background-color: linear-gradient(#e0f7ef 0%, #baf1df 100%);
     -fx-text-fill: #006644;
 }
 
 .winner-banner.winner-tail {
-    -fx-background-color: linear-gradient(#ffecec, #ffdede);
+    -fx-background-color: linear-gradient(#ffecec 0%, #ffdede 100%);
     -fx-text-fill: #663300;
+}
+
+.label {
+    -fx-font-size: 13px;
 }
