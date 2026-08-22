@@ -47,72 +47,94 @@ class AppController {
 
     @FXML
     fun initialize() {
-        // wire description counter
-        descriptionField.textProperty().addListener { _, _, new ->
-            descCount.text = (new?.length ?: 0).toString()
+        // Setup description counter (safe if injected)
+        if (this::descriptionField.isInitialized && this::descCount.isInitialized) {
+            descriptionField.textProperty().addListener { _, _, new ->
+                descCount.text = (new?.length ?: 0).toString()
+            }
         }
 
-        // ensure radio buttons are in a ToggleGroup
-        if (headRadio.toggleGroup == null && tailRadio.toggleGroup == null) {
-            val group = ToggleGroup()
-            headRadio.toggleGroup = group
-            tailRadio.toggleGroup = group
-        }
-        headRadio.isSelected = true
-
-        // banner init
-        winnerBanner.isVisible = false
-        winnerBanner.isManaged = false
-
-        headCountLabel.text = "0"
-        tailCountLabel.text = "0"
-        summaryLabel.text = ""
-
-        // Try to use the injected spinner; if it's not injected, attempt to find it after scene is ready
-        if (!this::oddSpinner.isInitialized) {
+        // Setup spinner (guarded)
+        if (this::oddSpinner.isInitialized) {
+            setupSpinner(oddSpinner)
+        } else {
+            // defensive: try to lookup later if injection missed for some reason
             Platform.runLater {
-                val lookup = descriptionField.scene?.lookup("#oddSpinner") as? Spinner<*>
-                if (lookup != null) {
-                    @Suppress("UNCHECKED_CAST")
-                    oddSpinner = lookup as Spinner<Int>
-                    // initialize spinner factory if still needed
-                    oddSpinner.isEditable = true
-                    val factory = SpinnerValueFactory.IntegerSpinnerValueFactory(1, Int.MAX_VALUE, 1, 2)
-                    oddSpinner.valueFactory = factory
-                } else {
-                    // give a clear message so you can see what's wrong
-                    showAlert("UI error", "Spinner control not found in FXML. Check fx:id=\"oddSpinner\" and resource packaging.")
+                try {
+                    if (!this::oddSpinner.isInitialized) {
+                        val lookup = descriptionField.scene?.lookup("#oddSpinner") as? Spinner<*>
+                        if (lookup != null) {
+                            @Suppress("UNCHECKED_CAST")
+                            oddSpinner = lookup as Spinner<Int>
+                            setupSpinner(oddSpinner)
+                        }
+                    }
+                } catch (t: Throwable) {
+                    // ignore; we'll show friendly message elsewhere if needed
                 }
             }
-        } else {
-            // normal spinner setup if injected
-            oddSpinner.isEditable = true
-            val factory = SpinnerValueFactory.IntegerSpinnerValueFactory(1, Int.MAX_VALUE, 1, 2)
-            oddSpinner.valueFactory = factory
         }
+
+        // Ensure radio buttons are mutually exclusive
+        if (this::headRadio.isInitialized && this::tailRadio.isInitialized) {
+            if (headRadio.toggleGroup == null && tailRadio.toggleGroup == null) {
+                val group = ToggleGroup()
+                headRadio.toggleGroup = group
+                tailRadio.toggleGroup = group
+            }
+            headRadio.isSelected = true
+        }
+
+        // Banner defaults
+        if (this::winnerBanner.isInitialized) {
+            winnerBanner.isVisible = false
+            winnerBanner.isManaged = false
+        }
+
+        // counters defaults
+        if (this::headCountLabel.isInitialized) headCountLabel.text = "0"
+        if (this::tailCountLabel.isInitialized) tailCountLabel.text = "0"
+        if (this::summaryLabel.isInitialized) summaryLabel.text = ""
     }
 
-    // Preset handlers (wired from FXML)
+    private fun setupSpinner(spinner: Spinner<Int>) {
+        spinner.isEditable = true
+        val factory = SpinnerValueFactory.IntegerSpinnerValueFactory(1, Int.MAX_VALUE, 1, 2)
+        spinner.valueFactory = factory
+    }
+
+    // Presets
     @FXML fun onPreset1(e: ActionEvent?) = setSpinnerValue(1)
     @FXML fun onPreset3(e: ActionEvent?) = setSpinnerValue(3)
     @FXML fun onPreset5(e: ActionEvent?) = setSpinnerValue(5)
     @FXML fun onPreset7(e: ActionEvent?) = setSpinnerValue(7)
 
     private fun setSpinnerValue(v: Int) {
-        oddSpinner.valueFactory.value = v
+        if (this::oddSpinner.isInitialized) {
+            oddSpinner.valueFactory.value = v
+        }
     }
 
     @FXML
     fun onFlip(event: ActionEvent?) {
-        // Clear previous results
+        // Defensive checks for required injected nodes
+        if (!this::oddSpinner.isInitialized || !this::flipButton.isInitialized || !this::outputArea.isInitialized) {
+            showAlert("UI error", "Required UI controls are not initialized. Rebuild and ensure resources are packaged.")
+            return
+        }
+
         outputArea.clear()
-        winnerBanner.isVisible = false
-        winnerBanner.isManaged = false
-        summaryLabel.text = ""
+        if (this::winnerBanner.isInitialized) {
+            winnerBanner.isVisible = false
+            winnerBanner.isManaged = false
+        }
+        if (this::summaryLabel.isInitialized) summaryLabel.text = ""
 
-        val desc = descriptionField.text?.trim().takeUnless { it.isNullOrEmpty() } ?: "(no description)"
+        val desc = if (this::descriptionField.isInitialized) {
+            descriptionField.text?.trim().takeUnless { it.isNullOrEmpty() } ?: "(no description)"
+        } else "(no description)"
 
-        // Read spinner value safely (editable spinner might have typed text)
+        // Read spinner editor value, coerce to odd positive
         val odd = try {
             val text = oddSpinner.editor.text.trim()
             val parsed = text.toInt()
@@ -125,20 +147,16 @@ class AppController {
             showAlert("Invalid input", "Please enter a numeric odd integer.")
             return
         }
-
-        // update spinner display with validated odd
+        // Update spinner display
         oddSpinner.valueFactory.value = odd
 
-        val playerChoice = if (headRadio.isSelected) "Head" else "Tail"
+        val playerChoice = if (this::headRadio.isInitialized && headRadio.isSelected) "Head" else "Tail"
 
-        if (runningTask != null) {
-            // Already running; ignore or optionally cancel & restart
-            return
-        }
+        if (runningTask != null) return // ignore while running
 
         setControlsDisabled(true)
-        headCountLabel.text = "0"
-        tailCountLabel.text = "0"
+        if (this::headCountLabel.isInitialized) headCountLabel.text = "0"
+        if (this::tailCountLabel.isInitialized) tailCountLabel.text = "0"
 
         val task = object : Task<Unit>() {
             override fun call() {
@@ -161,14 +179,14 @@ class AppController {
                     val flipText = "Flip $i: ${if (flip == 0) "Head" else "Tail"}\n"
                     Platform.runLater {
                         outputArea.appendText(flipText)
-                        headCountLabel.text = headCount.toString()
-                        tailCountLabel.text = tailCount.toString()
+                        if (this@AppController::headCountLabel.isInitialized) headCountLabel.text = headCount.toString()
+                        if (this@AppController::tailCountLabel.isInitialized) tailCountLabel.text = tailCount.toString()
                     }
 
                     if (headCount == target || tailCount == target) break
 
                     try {
-                        Thread.sleep(120)
+                        Thread.sleep(120) // brief pause so user can see progress
                     } catch (ie: InterruptedException) {
                         if (isCancelled) break
                     }
@@ -183,8 +201,8 @@ class AppController {
 
                 Platform.runLater {
                     outputArea.appendText(resultText.toString())
-                    showWinnerBanner(winner, playerChoice)
-                    summaryLabel.text = "Total flips: ${headCount + tailCount}"
+                    if (this@AppController::winnerBanner.isInitialized) showWinnerBanner(winner, playerChoice)
+                    if (this@AppController::summaryLabel.isInitialized) summaryLabel.text = "Total flips: ${headCount + tailCount}"
                 }
             }
         }
@@ -220,20 +238,21 @@ class AppController {
         winnerBanner.isVisible = true
     }
 
-    // Helper to enable/disable inputs
     private fun setControlsDisabled(disabled: Boolean) {
-        flipButton.isDisable = disabled
-        descriptionField.isDisable = disabled
-        oddSpinner.isDisable = disabled
-        headRadio.isDisable = disabled
-        tailRadio.isDisable = disabled
+        if (this::flipButton.isInitialized) flipButton.isDisable = disabled
+        if (this::descriptionField.isInitialized) descriptionField.isDisable = disabled
+        if (this::oddSpinner.isInitialized) oddSpinner.isDisable = disabled
+        if (this::headRadio.isInitialized) headRadio.isDisable = disabled
+        if (this::tailRadio.isInitialized) tailRadio.isDisable = disabled
     }
 
     private fun showAlert(title: String, text: String) {
-        val alert = Alert(Alert.AlertType.INFORMATION)
-        alert.title = title
-        alert.headerText = null
-        alert.contentText = text
-        alert.showAndWait()
+        Platform.runLater {
+            val alert = Alert(Alert.AlertType.INFORMATION)
+            alert.title = title
+            alert.headerText = null
+            alert.contentText = text
+            alert.showAndWait()
+        }
     }
 }
